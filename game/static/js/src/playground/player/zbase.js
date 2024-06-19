@@ -18,6 +18,10 @@ class Player extends AcGameObject{
         this.damage_y = 0;
         this.damage_speed = 0;
         this.friction = 0.9;
+        if(this.is_me){
+            this.img = new Image();
+            this.img.src = this.playground.root.settings.photo;
+        }
     }
     start(){
         if(this.is_me){
@@ -34,11 +38,12 @@ class Player extends AcGameObject{
             return false;
         });
         this.playground.game_map.$canvas.mousedown(function(e){
+            const rect = outer.ctx.canvas.getBoundingClientRect();
             if(e.which===3){  // 右键
-                outer.move_to(e.clientX, e.clientY);
+                outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
             }else if(e.which===1){
                 if(outer.cur_skill === "fireball"){
-                    outer.shoot_fireball(e.clientX, e.clientY);
+                    outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
                 }
                 outer.cur_skill = null;
             }
@@ -58,7 +63,7 @@ class Player extends AcGameObject{
         let vy = Math.sin(angle);
         let radius = this.playground.height * 0.01;
         let color = "blue";
-        let speed = this.playground.height * 0.5;
+        let speed = this.playground.height * 0.9;
         let move_length = this.playground.height * 1.5;
         new FireBall(this.playground, this, x, y, radius, vx, vy, this.playground.height*0.01, color, speed, move_length);
     }
@@ -98,7 +103,8 @@ class Player extends AcGameObject{
 
     update(){
         if(Math.random()<1/180.0){
-            let player = this.playground.players[0];
+            let index = Math.floor(Math.random()*this.playground.players.length);
+            let player = this.playground.players[index];
             this.shoot_fireball(player.x,player.y);
         }
         if(this.damage_speed > 10){
@@ -126,9 +132,19 @@ class Player extends AcGameObject{
         this.render();
     }
     render(){
-        this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2,false);
-        this.ctx.fillStyle = this.color;
-        this.ctx.fill();
+        if(this.is_me){
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.stroke();
+            this.ctx.clip();
+            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+            this.ctx.restore();
+        }else{
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2,false);
+            this.ctx.fillStyle = this.color;
+            this.ctx.fill();
+        }
     }
 }
