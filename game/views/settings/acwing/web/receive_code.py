@@ -18,8 +18,8 @@ def receive_code(request):
 
     apply_access_token_url = "https://www.acwing.com/third_party/api/oauth2/access_token/"
     params = {
-        'appid': "165",
-        'secret': "2a79c385f35e4533ab803031fab68e3d",
+        'appid': "1754",
+        'secret': "3dff8baac3be4a068a8de8d2857e00e2",
         'code': code
     }
 

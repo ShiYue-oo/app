@@ -1,5 +1,5 @@
-class Settings{
-    constructor(root){
+class Settings {
+    constructor(root) {
         this.root = root;
         this.platform = "WEB";
         this.username = "";
@@ -32,7 +32,7 @@ class Settings{
                 </div>
                 <br>
                 <div class ="ac-game-settings-acwing">
-                    <img width="30" src="http://localhost:8000/static/image/settings/acwing_logo.png">
+                    <img width="30" src="http://43.138.22.208:8000/static/image/settings/acwing_logo.png">
                     <br>
                     <div>
                         Acwing 一键登录
@@ -71,7 +71,7 @@ class Settings{
                     登录
                 </div>
                 <div class ="ac-game-settings-acwing">
-                    <img width="30" src="http://localhost:8000/static/image/settings/acwing_logo.png">
+                    <img width="30" src="http://43.138.22.208:8000/static/image/settings/acwing_logo.png">
                     <br>
                     <div>
                         Acwing 一键登录
@@ -98,69 +98,92 @@ class Settings{
         this.$register_login = this.$register.find('.ac-game-settings-option');
         this.$register.hide();
 
+        this.$acwing_login = this.$settings.find('.ac-game-settings-acwing img');
         this.root.$ac_game.append(this.$settings);
 
         this.start();
     }
 
-    register(){
+    register() {
         this.$login.hide();
         this.$register.show();
     }
-    login(){
+    login() {
         this.$register.hide();
         this.$login.show();
     }
-    start(){
+    start() {
         this.getinfo();
         this.add_listening_events();
     }
-    add_listening_events(){
+    add_listening_events() {
+        let outer = this;
         this.add_listening_events_login();
         this.add_listening_events_register();
+
+        this.$acwing_login.click(function () {
+            // console 输出日志
+            console.log("acwing_login");
+            outer.acwing_login();
+        });
+
     }
-    add_listening_events_login(){
+    add_listening_events_login() {
         let outer = this;
-        this.$login_register.click(function(){
+        this.$login_register.click(function () {
             outer.register();
         });
-        this.$login_submit.click(function(){
+        this.$login_submit.click(function () {
             outer.login_on_remote();
         });
     }
-    add_listening_events_register(){
+    add_listening_events_register() {
         let outer = this;
-        this.$register_login.click(function(){
+        this.$register_login.click(function () {
             outer.login();
         });
-        this.$register_submit.click(function(){
+        this.$register_submit.click(function () {
             outer.register_on_remote();
         });
     }
-    login_on_remote(){
+    acwing_login() {
+        $.ajax({
+            // url: "https://app1754.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
+            url: "http://43.138.22.208:8000/settings/acwing/web/apply_code/",
+            type: "GET",
+            success: function (resp) {
+                console.log(resp);
+                if (resp.result === "success") {
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
+        });
+    }
+
+    login_on_remote() {
         let username = this.$login_username.val();
         let password = this.$login_password.val();
         let outer = this;
         this.$login_error_message.empty();
 
-       $.ajax({
-            url: "http://localhost:8000/settings/login",
+        $.ajax({
+            url: "http://43.138.22.208:8000/settings/login",
             type: "GET",
-            data :{
+            data: {
                 username: username,
                 password: password,
             },
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
-                if(resp.result==="success"){
+                if (resp.result === "success") {
                     location.reload();
-                }else{
-                       outer.$login_error_message.html(resp.result);
+                } else {
+                    outer.$login_error_message.html(resp.result);
                 }
             }
-       });
+        });
     }
-    register_on_remote(){
+    register_on_remote() {
         let outer = this;
         let username = this.$register_username.val();
         let password = this.$register_password.val();
@@ -168,53 +191,53 @@ class Settings{
         this.$register_error_message.empty();
 
         $.ajax({
-              url: "http://localhost:8000/settings/register",
-                type: "GET",
-                data :{
-                    username: username,
-                    password: password,
-                    password_confirm: password_confirm,
-                },
-                success: function(resp) {
-                    console.log(resp);
-                    if(resp.result==="success"){
-                        location.reload();
-                    }else {
-                        outer.$register_error_message.html(resp.result);
-                    }
+            url: "http://43.138.22.208:8000/settings/register",
+            type: "GET",
+            data: {
+                username: username,
+                password: password,
+                password_confirm: password_confirm,
+            },
+            success: function (resp) {
+                console.log(resp);
+                if (resp.result === "success") {
+                    location.reload();
+                } else {
+                    outer.$register_error_message.html(resp.result);
                 }
+            }
         });
     }
-    logout_on_remote(){
+    logout_on_remote() {
         $.ajax({
-            url: "http://localhost:8000/settings/logout",
+            url: "http://43.138.22.208:8000/settings/logout",
             type: "GET",
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
-                if(resp.result==="success"){
+                if (resp.result === "success") {
                     location.reload();
                 }
             }
         });
     }
-    getinfo(){
-//        console.log("getinfo");
+    getinfo() {
+        //        console.log("getinfo");
         let outer = this;
 
         $.ajax({
-            url: "http://localhost:8000/settings/getinfo",
+            url: "http://43.138.22.208:8000/settings/getinfo",
             type: "GET",
-            data :{
-                platform : outer.platform
+            data: {
+                platform: outer.platform
             },
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
-                if(resp.result==="success"){
+                if (resp.result === "success") {
                     outer.username = resp.username;
                     outer.photo = resp.photo;
                     outer.hide();
                     outer.root.menu.show();
-                }else{
+                } else {
                     outer.login();
                 }
             }
@@ -223,7 +246,7 @@ class Settings{
     hide() {
         this.$settings.hide();
     }
-    show(){
+    show() {
         this.$settings.show();
     }
 
