@@ -1,5 +1,5 @@
-class GameMap extends AcGameObject{
-    constructor(playground){
+class GameMap extends AcGameObject {
+    constructor(playground) {
         super();
         this.playground = playground;
         this.$canvas = $(`<canvas></canvas>`); // 创建一个canvas元素
@@ -8,14 +8,21 @@ class GameMap extends AcGameObject{
         this.ctx.canvas.height = this.playground.height; // 设置canvas的高度
         this.playground.$playground.append(this.$canvas); // 将canvas添加到playground中
     }
-    start(){
+    start() {
 
     }
-    update(){
+    resize() {
+        this.ctx.canvas.width = this.playground.width;
+        this.ctx.canvas.height = this.playground.height;
+        this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
+        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    }
+
+    update() {
         this.render();
     }
-    render(){
-        this.ctx.fillStyle = "rgba(200,56,56,0.5)";
-        this.ctx.fillRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
+    render() {
+        this.ctx.fillStyle = "rgba(0,0,0,0.5)";
+        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 }
