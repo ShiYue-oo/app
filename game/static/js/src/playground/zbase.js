@@ -15,7 +15,7 @@ class AcGamePlayground {
         return colors[Math.floor(Math.random() * colors.length)];
     }
     start() {
-        console.log("start");
+        // console.log("start");
         let outer = this;
         $(window).resize(function () {
             outer.resize();
@@ -35,19 +35,26 @@ class AcGamePlayground {
             this.game_map.resize();
         }
     }
-    show() {
+    show(mode) {
+        let outer = this;
         // console.log("show");
         this.$playground.show();
 
-        this.resize();
+
 
         this.width = this.$playground.width();
         this.height = this.$playground.height();
         this.game_map = new GameMap(this);
+        this.resize();
         this.players = [];
-        this.players.push(new Player(this, this.width / 2 / this.height, 0.5, 0.05, "white", 0.5, true));
-        for (let i = 0; i < 20; i++) {
-            this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, false));
+        this.players.push(new Player(this, this.width / 2 / this.height, 0.5, 0.05, "white", 0.5, "me", this.root.settings.username, this.root.settings.photo));
+
+        if (mode == "single mode") {
+            for (let i = 0; i < 20; i++) {
+                this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, "bot"));
+            }
+        } else if (mode == "muti mode") {
+
         }
     }
     hide() {

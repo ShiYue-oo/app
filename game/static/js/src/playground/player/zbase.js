@@ -1,5 +1,5 @@
 class Player extends AcGameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -11,20 +11,22 @@ class Player extends AcGameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
+        this.character = character;
+        this.username = username;
+        this.photo = photo;
         this.eps = 0.01;
         this.cur_skill = null;
         this.damage_x = 0;
         this.damage_y = 0;
         this.damage_speed = 0;
         this.friction = 0.9;
-        if (this.is_me) {
+        if (this.character !== "bot") {
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
     }
     start() {
-        if (this.is_me) {
+        if (this.character === "me") {
             this.add_listening_events();
         } else {
             let tx = Math.random() * this.playground.width / this.playground.height;
@@ -107,7 +109,7 @@ class Player extends AcGameObject {
         this.render();
     }
     update_move() {
-        if (Math.random() < 1 / 180.0) {
+        if (this.character === "bot" && Math.random() < 1 / 180.0) {
             let index = Math.floor(Math.random() * this.playground.players.length);
             let player = this.playground.players[index];
             this.shoot_fireball(player.x, player.y);
@@ -123,7 +125,7 @@ class Player extends AcGameObject {
             this.move_length = 0;
             this.vx = 0;
             this.vy = 0;
-            if (!this.is_me) {  // 如果不是玩家自己，到达终点后再随机选一个位置移动
+            if (this.character === "bot") {  // 如果不是玩家自己，到达终点后再随机选一个位置移动
                 let tx = Math.random() * this.playground.width / this.playground.scale;
                 let ty = Math.random() * this.playground.height / this.playground.scale;
                 this.move_to(tx, ty);
@@ -137,7 +139,7 @@ class Player extends AcGameObject {
     }
     render() {
         let scale = this.playground.scale;
-        if (this.is_me) {
+        if (this.character !== "bot") {
             this.ctx.save();
             this.ctx.beginPath();
             this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);

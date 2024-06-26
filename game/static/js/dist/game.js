@@ -1,5 +1,5 @@
-class AcGameMenu{
-    constructor(root){
+class AcGameMenu {
+    constructor(root) {
         this.root = root;
         this.$menu = $(`
             <div class="ac-game-menu">
@@ -25,30 +25,30 @@ class AcGameMenu{
         this.start();
     }
 
-    start(){
+    start() {
         this.add_listening_events();
     }
 
-    add_listening_events(){
+    add_listening_events() {
         let outer = this;
-        this.$single_mode.click(function(){
+        this.$single_mode.click(function () {
             outer.hide();
-            outer.root.playground.show();
+            outer.root.playground.show("single mode");
         });
-        this.$multi_mode.click(function(){
-            console.log('multi mode clicked');
+        this.$multi_mode.click(function () {
+            outer.hide();
+            outer.root.playground.show("muti mode");
         });
-        this.$settings.click(function(){
-            console.log('settings clicked');
+        this.$settings.click(function () {
             outer.root.settings.logout_on_remote();
         });
     }
 
-    show(){
+    show() {
         this.$menu.show();
     }
 
-    hide(){
+    hide() {
         this.$menu.hide();
     }
 }let AC_GAME_OBJECTS = [];
@@ -155,7 +155,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.ctx.fill();
     }
 }class Player extends AcGameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -167,20 +167,22 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
+        this.character = character;
+        this.username = username;
+        this.photo = photo;
         this.eps = 0.01;
         this.cur_skill = null;
         this.damage_x = 0;
         this.damage_y = 0;
         this.damage_speed = 0;
         this.friction = 0.9;
-        if (this.is_me) {
+        if (this.character !== "bot") {
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
     }
     start() {
-        if (this.is_me) {
+        if (this.character === "me") {
             this.add_listening_events();
         } else {
             let tx = Math.random() * this.playground.width / this.playground.height;
@@ -263,7 +265,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.render();
     }
     update_move() {
-        if (Math.random() < 1 / 180.0) {
+        if (this.character === "bot" && Math.random() < 1 / 180.0) {
             let index = Math.floor(Math.random() * this.playground.players.length);
             let player = this.playground.players[index];
             this.shoot_fireball(player.x, player.y);
@@ -279,7 +281,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             this.move_length = 0;
             this.vx = 0;
             this.vy = 0;
-            if (!this.is_me) {  // 如果不是玩家自己，到达终点后再随机选一个位置移动
+            if (this.character === "bot") {  // 如果不是玩家自己，到达终点后再随机选一个位置移动
                 let tx = Math.random() * this.playground.width / this.playground.scale;
                 let ty = Math.random() * this.playground.height / this.playground.scale;
                 this.move_to(tx, ty);
@@ -293,7 +295,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
     render() {
         let scale = this.playground.scale;
-        if (this.is_me) {
+        if (this.character !== "bot") {
             this.ctx.save();
             this.ctx.beginPath();
             this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
@@ -382,7 +384,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         return colors[Math.floor(Math.random() * colors.length)];
     }
     start() {
-        console.log("start");
+        // console.log("start");
         let outer = this;
         $(window).resize(function () {
             outer.resize();
@@ -402,19 +404,26 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             this.game_map.resize();
         }
     }
-    show() {
+    show(mode) {
+        let outer = this;
         // console.log("show");
         this.$playground.show();
 
-        this.resize();
+
 
         this.width = this.$playground.width();
         this.height = this.$playground.height();
         this.game_map = new GameMap(this);
+        this.resize();
         this.players = [];
-        this.players.push(new Player(this, this.width / 2 / this.height, 0.5, 0.05, "white", 0.5, true));
-        for (let i = 0; i < 20; i++) {
-            this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, false));
+        this.players.push(new Player(this, this.width / 2 / this.height, 0.5, 0.05, "white", 0.5, "me", this.root.settings.username, this.root.settings.photo));
+
+        if (mode == "single mode") {
+            for (let i = 0; i < 20; i++) {
+                this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, "bot"));
+            }
+        } else if (mode == "muti mode") {
+
         }
     }
     hide() {

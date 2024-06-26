@@ -1,5 +1,5 @@
-class AcGameMenu{
-    constructor(root){
+class AcGameMenu {
+    constructor(root) {
         this.root = root;
         this.$menu = $(`
             <div class="ac-game-menu">
@@ -25,30 +25,30 @@ class AcGameMenu{
         this.start();
     }
 
-    start(){
+    start() {
         this.add_listening_events();
     }
 
-    add_listening_events(){
+    add_listening_events() {
         let outer = this;
-        this.$single_mode.click(function(){
+        this.$single_mode.click(function () {
             outer.hide();
-            outer.root.playground.show();
+            outer.root.playground.show("single mode");
         });
-        this.$multi_mode.click(function(){
-            console.log('multi mode clicked');
+        this.$multi_mode.click(function () {
+            outer.hide();
+            outer.root.playground.show("muti mode");
         });
-        this.$settings.click(function(){
-            console.log('settings clicked');
+        this.$settings.click(function () {
             outer.root.settings.logout_on_remote();
         });
     }
 
-    show(){
+    show() {
         this.$menu.show();
     }
 
-    hide(){
+    hide() {
         this.$menu.hide();
     }
 }
