@@ -28,7 +28,7 @@ class Player extends AcGameObject {
     start() {
         if (this.character === "me") {
             this.add_listening_events();
-        } else {
+        } else { // 这里应该只让机器人随机游走
             let tx = Math.random() * this.playground.width / this.playground.height;
             let ty = Math.random() * this.playground.height / this.playground.height;
             this.move_to(tx, ty);

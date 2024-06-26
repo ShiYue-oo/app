@@ -54,6 +54,12 @@ class AcGamePlayground {
                 this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, "bot"));
             }
         } else if (mode == "muti mode") {
+            this.mps = new MultiPlayerSocket(this);
+            this.mps.uuid = this.players[0].uuid;    // 用当前窗口player的uuid来标识当前窗口
+
+            this.mps.ws.onopen = function () {    // 等到链接创建成功后调用
+                outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+            };
 
         }
     }

@@ -53,24 +53,34 @@ class AcGameMenu {
     }
 }let AC_GAME_OBJECTS = [];
 
-class AcGameObject{
-    constructor(){
+class AcGameObject {
+    constructor() {
         AC_GAME_OBJECTS.push(this);
         this.has_called_start = false; // 是否已经调用过start方法
         this.timedelta = 0;   // 当前帧和上一帧的时间差
+        this.uuid = this.create_uuid();
     }
-    start(){
+
+    create_uuid() {
+        let res = "";
+        for (let i = 0; i < 8; i++) {
+            let x = parseInt(Math.floor(Math.random() * 10));  // 返回[0, 1)之间的数
+            res += x;
+        }
+        return res;
     }
-    update(){
+    start() {
+    }
+    update() {
 
     }
-    on_destroy(){   // 用于被销毁前执行，给其他加分之类的
+    on_destroy() {   // 用于被销毁前执行，给其他加分之类的
 
     }
-    destroy(){
+    destroy() {
         this.on_destroy();
-        for(let i = 0; i < AC_GAME_OBJECTS.length; i++){
-            if(AC_GAME_OBJECTS[i] === this){
+        for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
+            if (AC_GAME_OBJECTS[i] === this) {
                 AC_GAME_OBJECTS.splice(i, 1);
                 break;
             }
@@ -78,13 +88,13 @@ class AcGameObject{
     }
 }
 let last_timestamp;
-let AC_GAME_ANIMATION = function(timestamp){
-    for(let i = 0;i<AC_GAME_OBJECTS.length;i++){
+let AC_GAME_ANIMATION = function (timestamp) {
+    for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
         let obj = AC_GAME_OBJECTS[i];
-        if(!obj.has_called_start){
+        if (!obj.has_called_start) {
             obj.start();
             obj.has_called_start = true;
-        }else{
+        } else {
             obj.timedelta = timestamp - last_timestamp;
             obj.update();
         }
@@ -184,7 +194,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     start() {
         if (this.character === "me") {
             this.add_listening_events();
-        } else {
+        } else { // 这里应该只让机器人随机游走
             let tx = Math.random() * this.playground.width / this.playground.height;
             let ty = Math.random() * this.playground.height / this.playground.height;
             this.move_to(tx, ty);
@@ -367,7 +377,64 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
-}class AcGamePlayground {
+}class MultiPlayerSocket {
+    constructor(playground) {
+        this.playground = playground;
+
+        console.log("MultiPlayerSocket");
+
+        this.ws = new WebSocket("ws://43.138.22.208:8000/wss/multiplayer/");
+
+        this.start();
+    }
+
+    start() {
+        this.receive();
+    }
+
+    receive() {
+        let outer = this;
+
+        this.ws.onmessage = function (e) {
+            let data = JSON.parse(e.data);
+            let uuid = data.uuid;
+            if (uuid === outer.uuid) return false;
+
+            let event = data.event;
+            if (event === "create_player") {
+                outer.receive_create_player(uuid, data.username, data.photo);
+            }
+        };
+    }
+
+    send_create_player(username, photo) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "create_player",
+            'uuid': outer.uuid,
+            'username': username,
+            'photo': photo,
+        }));
+    }
+
+    receive_create_player(uuid, username, photo) {
+        let player = new Player(
+            this.playground,
+            this.playground.width / 2 / this.playground.scale,
+            0.5,
+            0.05,
+            "white",
+            0.15,
+            "enemy",
+            username,
+            photo,
+        );
+
+        player.uuid = uuid;
+        this.playground.players.push(player);
+    }
+}
+class AcGamePlayground {
     constructor(root) {
         // console.log("AcGamePlayground");
         this.root = root;
@@ -423,6 +490,12 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, "bot"));
             }
         } else if (mode == "muti mode") {
+            this.mps = new MultiPlayerSocket(this);
+            this.mps.uuid = this.players[0].uuid;    // 用当前窗口player的uuid来标识当前窗口
+
+            this.mps.ws.onopen = function () {    // 等到链接创建成功后调用
+                outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+            };
 
         }
     }
