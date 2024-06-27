@@ -44,10 +44,13 @@ class MultiPlayer(AsyncWebsocketConsumer):
             'photo': data['photo']
         })
         cache.set(self.room_name, players, 3600)  # 有效期1小时
+        # 当房间内的其他 WebSocket 连接接收到这条消息时，Channels 框架会根据消息的 type 字段找到对应的处理方法。
+        # 具体来说，type 字段的值 group_create_player 表示要调用名为 group_create_player 的方法。
+        # 传入的data就是除了type之外的其他字段
         await self.channel_layer.group_send(
             self.room_name,
             {
-                'type': "group_create_player",
+                'type': "group_send_event",
                 'event': "create_player",
                 'uuid': data['uuid'],
                 'username': data['username'],
@@ -55,11 +58,62 @@ class MultiPlayer(AsyncWebsocketConsumer):
             }
         )
 
-    async def group_create_player(self, data):
+    async def group_send_event(self, data):
         await self.send(text_data=json.dumps(data))
+
+    async def move_to(self, data):
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': "group_send_event",
+                'event': "move_to",
+                'uuid': data['uuid'],
+                'tx': data['tx'],
+                'ty': data['ty'],
+            }
+        )
+
+
+    async def shoot_fireball(self, data):
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': "group_send_event",
+                'event': "shoot_fireball",
+                'uuid': data['uuid'],
+                'tx': data['tx'],
+                'ty': data['ty'],
+                'ball_uuid': data['ball_uuid'],
+            }
+        )
+
+    async def attack(self, data):
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': "group_send_event",
+                'event': "attack",
+                'uuid': data['uuid'],
+                'attackee_uuid': data['attackee_uuid'],
+                'x': data['x'],
+                'y': data['y'],
+                'angle': data['angle'],
+                'damage': data['damage'],
+                'ball_uuid': data['ball_uuid'],
+            }
+        )
+
 
     async def receive(self, text_data):
         data = json.loads(text_data)
         event = data['event']
         if event == "create_player":
             await self.create_player(data)
+        elif event == "move_to":
+            await self.move_to(data)
+        elif event == "shoot_fireball":
+            await self.shoot_fireball(data)
+        elif event == "attack":
+            await self.attack(data)
+
+    
