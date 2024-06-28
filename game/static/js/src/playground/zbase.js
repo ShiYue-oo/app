@@ -47,6 +47,9 @@ class AcGamePlayground {
         this.game_map = new GameMap(this);
 
         this.mode = mode;
+        this.state = "waiting";
+        this.notice_board = new NoticeBoard(this);
+        this.player_count = 0;
 
         this.resize();
         this.players = [];
@@ -56,7 +59,7 @@ class AcGamePlayground {
             for (let i = 0; i < 20; i++) {
                 this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, "bot"));
             }
-        } else if (mode == "muti mode") {
+        } else if (mode == "multi mode") {
             this.mps = new MultiPlayerSocket(this);
             this.mps.uuid = this.players[0].uuid;    // 用当前窗口player的uuid来标识当前窗口
 

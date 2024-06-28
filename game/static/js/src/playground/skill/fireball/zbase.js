@@ -58,7 +58,7 @@ class FireBall extends AcGameObject {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
         player.is_attacked(this.damage, angle);
 
-        if (this.playground.mode === "muti mode") {
+        if (this.playground.mode === "multi mode") {
             this.playground.mps.send_attack(player.uuid, player.x, player.y, angle, this.damage, this.uuid);
         }
         this.destroy();
