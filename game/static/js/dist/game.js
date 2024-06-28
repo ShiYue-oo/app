@@ -245,6 +245,10 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         let speed = 0.9;
         let move_length = 1.5;
         let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, 0.01, color, speed, move_length);
+        //  输出这个palyer的uuid
+        // console.log("shoot_fireball_player", this.uuid);
+        // 输出发射的火球的详细信息
+        // console.log("shoot_fireball", fireball.uuid, x, y, radius, vx, vy, 0.01, color, speed, move_length);
         this.fireballs.push(fireball);
         return fireball;
     }
@@ -263,10 +267,12 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     receive_attack(x, y, angle, damage, ball_uuid, attacker) {
+        // 输出受到的攻击大小
+        // console.log("receive_attack", damage, ball_uuid, attacker.uuid);
         attacker.destroy_fireball(ball_uuid);
         this.x = x;
         this.y = y;
-        this.is_attacked(angle, damage);
+        this.is_attacked(damage, angle);
     }
 
 
@@ -278,6 +284,9 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     is_attacked(damage, angle) {
+
+        //  输出受到的攻击大小
+        // console.log("is_attacked", damage);
         this.radius -= damage;
         if (this.radius < this.eps) {
             this.destroy();
