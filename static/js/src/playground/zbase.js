@@ -60,6 +60,7 @@ class AcGamePlayground {
                 this.players.push(new Player(this, Math.random() * this.width / this.height, Math.random(), 0.05, this.get_random_color(), 0.5, "bot"));
             }
         } else if (mode == "multi mode") {
+            this.chat_field = new ChatField(this);
             this.mps = new MultiPlayerSocket(this);
             this.mps.uuid = this.players[0].uuid;    // 用当前窗口player的uuid来标识当前窗口
 

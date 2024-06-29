@@ -90,16 +90,31 @@ class Player extends AcGameObject {
                 outer.cur_skill = null;
             }
         });
-        $(window).keydown(function (e) {
+        this.playground.game_map.$canvas.keydown(function (e) {
+            if (e.which === 13) {  // enter
+                console.log("enter");
+                if (outer.playground.mode === "multi mode") {  // 打开聊天框
+                    outer.playground.chat_field.show_input();
+                    return false;
+                }
+            } else if (e.which === 27) {  // esc
+                if (outer.playground.mode === "multi mode") {  // 关闭聊天框
+                    outer.playground.chat_field.hide_input();
+                }
+            }
+
+
             if (outer.playground.state !== "fighting") return true;
 
             if (e.which === 81) {
+                console.log("q");
                 if (outer.fireball_coldtime > outer.eps)
                     return true;
 
                 outer.cur_skill = "fireball";
                 return false;
             } else if (e.which === 70) {  // f
+                console.log("f");
                 if (outer.blink_coldtime > outer.eps)
                     return true;
 
