@@ -33,6 +33,8 @@ class Player extends AcGameObject {
             this.blink_coldtime = 5;  // 单位：秒
             this.blink_img = new Image();
             this.blink_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
+        } else if (this.character === "bot") {
+            this.fireball_coldtime = 3;
         }
     }
     start() {    // 什么时候调用start方法？？
@@ -141,7 +143,11 @@ class Player extends AcGameObject {
         // console.log("shoot_fireball", fireball.uuid, x, y, radius, vx, vy, 0.01, color, speed, move_length);
         this.fireballs.push(fireball);
 
-        this.fireball_coldtime = 3;
+        if (this.playground.mode === "multi mode") {
+            this.fireball_coldtime = 0.2;
+        } else {
+            this.fireball_coldtime = 0.01;
+        }
         return fireball;
     }
     destroy_fireball(uuid) {
@@ -161,7 +167,7 @@ class Player extends AcGameObject {
         this.x += d * Math.cos(angle);
         this.y += d * Math.sin(angle);
 
-        this.blink_coldtime = 0.1;
+        this.blink_coldtime = 1;
         this.move_length = 0;  // 闪现完停下来
     }
 
@@ -216,12 +222,21 @@ class Player extends AcGameObject {
 
     update() {
         this.spent_time += this.timedelta / 1000;
-        if (this.character === "me" && this.playground.state === "fighting") {
+        this.update_win();
+        if ((this.character === "me" && this.playground.state === "fighting") || this.character === "bot") {
             this.update_coldtime();
         }
         this.update_move();
         this.render();
     }
+
+    update_win() {
+        if (this.playground.state === "fighting" && this.character === "me" && this.playground.players.length === 1) {
+            this.playground.state = "over";
+            this.playground.score_board.win();
+        }
+    }
+
     update_coldtime() {
         this.fireball_coldtime -= this.timedelta / 1000;
         this.fireball_coldtime = Math.max(this.fireball_coldtime, 0);
@@ -235,7 +250,9 @@ class Player extends AcGameObject {
         if (this.character === "bot" && Math.random() < 1 / 180.0) {
             let index = Math.floor(Math.random() * this.playground.players.length);
             let player = this.playground.players[index];
-            this.shoot_fireball(player.x, player.y);
+            if (this.fireball_coldtime < this.eps) {
+                this.shoot_fireball(player.x, player.y);
+            }
         }
         if (this.damage_speed > this.eps) {
             this.vx = this.vy = 0;
@@ -325,8 +342,12 @@ class Player extends AcGameObject {
 
     }
     on_destroy() {
-        if (this.character === "me")
-            this.playground.state = "over";
+        if (this.character === "me") {
+            if (this.playground.state === "fighting") {
+                this.playground.state = "over";
+                this.playground.score_board.lose();
+            }
+        }
 
         for (let i = 0; i < this.playground.players.length; i++) {
             if (this.playground.players[i] === this) {
