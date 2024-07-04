@@ -37,7 +37,7 @@ class Player extends AcGameObject {
             this.fireball_coldtime = 3;
         }
     }
-    start() {    // 什么时候调用start方法？？
+    start() {    // 什么时候调用start方法？？  start和update都是在引擎里面执行的
         this.playground.player_count++;
         this.playground.notice_board.write("已就绪：" + this.playground.player_count + "人");
         if (this.playground.player_count >= 3) {
@@ -47,32 +47,31 @@ class Player extends AcGameObject {
         if (this.character === "me") {
             this.add_listening_events();
         } else if (this.character === "bot") { // 这里应该只让机器人随机游走
-            let tx = Math.random() * this.playground.width / this.playground.height;
-            let ty = Math.random() * this.playground.height / this.playground.height;
+            let tx = Math.random() * 3;
+            let ty = Math.random() * 3;
             this.move_to(tx, ty);
         }
     }
     add_listening_events() {
+
         let outer = this;
+
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false;
         });
         this.playground.game_map.$canvas.mousedown(function (e) {
             if (outer.playground.state !== "fighting") return false;
-
             const rect = outer.ctx.canvas.getBoundingClientRect();
+
+            let tx = outer.playground.cx + (e.clientX - rect.left) / outer.playground.height;
+            let ty = outer.playground.cy + (e.clientY - rect.top) / outer.playground.height;
+
             if (e.which === 3) {  // 右键
-                let tx = (e.clientX - rect.left) / outer.playground.height;
-                let ty = (e.clientY - rect.top) / outer.playground.height;
                 outer.move_to(tx, ty);
                 if (outer.playground.mode === "multi mode") {
                     outer.playground.mps.send_move_to(tx, ty);
                 }
             } else if (e.which === 1) {
-
-
-                let tx = (e.clientX - rect.left) / outer.playground.height;
-                let ty = (e.clientY - rect.top) / outer.playground.height;
                 if (outer.cur_skill === "fireball") {
                     if (outer.fireball_coldtime > outer.eps) return false;
                     let fireball = outer.shoot_fireball(tx, ty);
@@ -93,8 +92,8 @@ class Player extends AcGameObject {
             }
         });
         this.playground.game_map.$canvas.keydown(function (e) {
+            // console.log("keydown", e.which);
             if (e.which === 13) {  // enter
-                console.log("enter");
                 if (outer.playground.mode === "multi mode") {  // 打开聊天框
                     outer.playground.chat_field.show_input();
                     return false;
@@ -105,25 +104,35 @@ class Player extends AcGameObject {
                 }
             }
 
-
             if (outer.playground.state !== "fighting") return true;
 
-            if (e.which === 81) {
-                console.log("q");
+            if (e.which === 81) {  // q
+                // console.log("q");
                 if (outer.fireball_coldtime > outer.eps)
                     return true;
 
                 outer.cur_skill = "fireball";
                 return false;
             } else if (e.which === 70) {  // f
-                console.log("f");
+                // console.log("f");
                 if (outer.blink_coldtime > outer.eps)
                     return true;
 
                 outer.cur_skill = "blink";
                 return false;
+            } else if (e.which === 69) {  // e
+                // console.log("e");
+                outer.cur_skill = "guard";
+                return false;
             }
+        });
 
+        this.playground.game_map.$canvas.keyup(function (e) {
+            if (e.which === 69) {  // e
+                // console.log("keyup e");
+                outer.cur_skill = null;
+                return false;
+            }
         });
     }
     shoot_fireball(tx, ty) {
@@ -227,6 +236,10 @@ class Player extends AcGameObject {
             this.update_coldtime();
         }
         this.update_move();
+
+        if (this.character === "me" && this.playground.state === "fighting") {
+            this.playground.re_calculate_cx_cy(this.x, this.y);
+        }
         this.render();
     }
 
@@ -266,8 +279,8 @@ class Player extends AcGameObject {
             this.vx = 0;
             this.vy = 0;
             if (this.character === "bot") {  // 如果不是玩家自己，到达终点后再随机选一个位置移动
-                let tx = Math.random() * this.playground.width / this.playground.scale;
-                let ty = Math.random() * this.playground.height / this.playground.scale;
+                let tx = Math.random() * 3;
+                let ty = Math.random() * 3;
                 this.move_to(tx, ty);
             }
         } else {
@@ -283,22 +296,39 @@ class Player extends AcGameObject {
     }
     render() {
         let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.2 * this.playground.width / scale ||
+            ctx_x > 1.2 * this.playground.width / scale ||
+            ctx_y < -0.2 * this.playground.height / scale ||
+            ctx_y > 1.2 * this.playground.height / scale) {
+            if (this.character != "me") { // 一个隐藏的bug，如果是玩家自己并且return，会导致技能图标渲染不出来
+                return;
+            }
+        }
         if (this.character !== "bot") {
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * scale * 2, this.radius * scale * 2);
+            this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * scale * 2, this.radius * scale * 2);
             this.ctx.restore();
         } else {
             this.ctx.beginPath();
-            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
         }
         if (this.character === "me" && this.playground.state === "fighting") {
             this.render_skill_coldtime();
+        }
+        if (this.cur_skill === "guard") {
+            // 以圆形的2倍半径为半径绘制圆形线
+            this.ctx.beginPath();
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale * 2, 0, Math.PI * 2, false);
+            this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)"; // 设置圆形线的颜色和透明度
+            this.ctx.lineWidth = 2; // 设置线条宽度
+            this.ctx.stroke();
         }
     }
     render_skill_coldtime() {

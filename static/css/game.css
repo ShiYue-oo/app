@@ -129,8 +129,8 @@
 .ac-game-menu-field {
     width: 20vw;
     position: relative;
-    top: 40%;
-    left: 20%;
+    top: 35%;
+    left: 41%;
 }
 
 .ac-game-menu-field-item {
@@ -151,11 +151,49 @@
     transition: 100ms;
 }
 
+.ac-game-introduction-return {
+    color: red;
+    height: 6vh;
+    width: 18vw;
+    font-size: 4vh;
+    font-style: italic;
+    text-align: center;
+    background-color: rgba(39, 21, 28, 0.6);
+    border-radius: 10px;
+    letter-spacing: 0.5vw;
+    cursor: pointer;
+
+    position: fixed;
+    /* 或 absolute，如果相对于父元素 */
+    bottom: 20px;
+    /* 距离页面底部的距离，可以根据需要调整 */
+    left: 50%;
+    /* 水平居中 */
+    transform: translateX(-50%);
+    /* 水平居中 */
+}
+
+.ac-game-introduction-return:hover {
+    transform: scale(1.2) translateX(-50%);
+    transition: 100ms;
+}
+
+
+
+/* playground的div要填满窗口 */
 .ac-game-playground {
     width: 100%;
     height: 100%;
     user-select: none;
-    background-color: yellowgreen;
+    background-color: rgb(142, 146, 218);
+}
+
+/* 让这个游戏说明占据全屏 */
+.ac-game-introduction {
+    width: 100%;
+    height: 100%;
+    background-size: 100% 100%;
+    user-select: none;
 }
 
 .ac-game-playground>canvas {

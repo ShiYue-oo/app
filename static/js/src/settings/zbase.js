@@ -220,7 +220,7 @@ class Settings {
             }
         });
     }
-    getinfo() {
+    getinfo() {  // 是自动会把自己的信息发送给服务器吗？？
         //        console.log("getinfo");
         let outer = this;
 

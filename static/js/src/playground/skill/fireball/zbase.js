@@ -41,7 +41,11 @@ class FireBall extends AcGameObject {
     update_attack() {
         for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
-            if (this.player !== player && this.is_collision(player)) {
+            if (this.player === player) continue;
+            if (player.cur_skill === "guard" && this.is_collision_with_guard(player)) {
+                this.destroy();
+                break;
+            } else if (this.is_collision(player)) {
                 this.attack(player);
                 break;
             }
@@ -54,6 +58,11 @@ class FireBall extends AcGameObject {
         let dist = this.get_dist(this.x, this.y, player.x, player.y);
         return dist < this.radius + player.radius;
     }
+    is_collision_with_guard(player) {
+        let dist = this.get_dist(this.x, this.y, player.x, player.y);
+        return dist < this.radius + player.radius * 2;
+
+    }
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
         player.is_attacked(this.damage, angle);
@@ -65,8 +74,16 @@ class FireBall extends AcGameObject {
     }
     render() {
         let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.1 * this.playground.width / scale ||
+            ctx_x > 1.1 * this.playground.width / scale ||
+            ctx_y < -0.1 * this.playground.height / scale ||
+            ctx_y > 1.1 * this.playground.height / scale) {
+            return;
+        }
+
         this.ctx.beginPath();
-        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
